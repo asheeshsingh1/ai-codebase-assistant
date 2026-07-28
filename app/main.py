@@ -5,8 +5,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.core.config import settings
 from app.db.session import engine
 
-app = FastAPI(title=settings.app_name)
+from app.api.v1.repositories import router as repository_router
 
+app = FastAPI(title=settings.app_name)
 
 @app.get("/health")
 async def health():
@@ -25,3 +26,5 @@ async def health():
             "database": "disconnected",
             "error": str(e),
         }
+
+app.include_router(repository_router)

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
         env_file=".env",
         case_sensitive=False,
     )
+    repository_storage_path: str = "storage/repos"
 
 
 settings = Settings()

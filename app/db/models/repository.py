@@ -5,17 +5,22 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import relationship
+
 
 from app.db.base import Base
 from app.db.mixins import TimestampMixin
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.db.models.repository_file import RepositoryFile
 
 class RepositoryStatus(str, Enum):
     PENDING = "PENDING"
-    INDEXING = "INDEXING"
+    CLONING = "CLONING"
     READY = "READY"
     FAILED = "FAILED"
-
 
 class Repository(TimestampMixin, Base):
     __tablename__ = "repositories"
@@ -38,7 +43,18 @@ class Repository(TimestampMixin, Base):
         default="main",
     )
 
+    local_path: Mapped[str | None] = mapped_column(
+        String(1024),
+        nullable=True,
+    )
+
     status: Mapped[RepositoryStatus] = mapped_column(
         SQLEnum(RepositoryStatus),
         default=RepositoryStatus.PENDING,
+    )
+
+    files: Mapped[list["RepositoryFile"]] = relationship(
+        "RepositoryFile",
+        back_populates="repository",
+        cascade="all, delete-orphan",
     )
