@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+.coverage
+.mypy_cache/
+.venv/
+.idea/
+.vscode/
+.DS_Store/
+alembic/versions/
+tmp/
+repos/
