@@ -47,27 +47,22 @@ class RepositoryService:
             git_url=str(payload.git_url),
         )
 
-        print("STEP 1")
 
         repository = await self.repository_repo.create(repository)
-        print("STEP 2", repository.id)
 
         repository.status = RepositoryStatus.CLONING
         await self.repository_repo.update(repository)
-        print("STEP 3")
 
         storage_path = (
             Path(settings.repository_storage_path)
             / str(repository.id)
         )
-        print("STEP 4", storage_path)
 
         try:
             self.git_service.clone(
                 repository.git_url,
                 storage_path,
             )
-            print("STEP 5")
 
             repository.local_path = str(storage_path)
             await self.repository_repo.update(repository)
@@ -77,9 +72,7 @@ class RepositoryService:
             repository.status = RepositoryStatus.READY
 
         except Exception as e:
-            print("=" * 80)
             traceback.print_exc()
-            print("=" * 80)
 
             await self.repository_repo.db.rollback()
 

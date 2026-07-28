@@ -22,13 +22,10 @@ class FileIndexerService:
         if repository.local_path is None:
             raise ValueError("Repository has no local path.")
 
-        print("Scanning repository...")
         files = self.scanner.scan(
             Path(repository.local_path),
         )
-        print(f"Found {len(files)} files")
         
-        print("Building RepositoryFile objects...")
         repository_files = [
             RepositoryFile(
                 repository_id=repository.id,
@@ -41,16 +38,13 @@ class FileIndexerService:
             for file in files
         ]
 
-        print("Deleting existing metadata...")
         try:
             await self.repository_file_repo.delete_by_repository(
                 repository.id
             )
         except Exception as e:
-            print("DELETE FAILED:", repr(e))
             raise
 
-        print("Bulk inserting...")
         await self.repository_file_repo.bulk_create(
             repository_files
         )
