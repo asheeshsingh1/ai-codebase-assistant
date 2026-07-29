@@ -1,4 +1,3 @@
-
 from logging.config import fileConfig
 
 from alembic import context
@@ -110,6 +109,7 @@ def run_migrations_online() -> None:
     import asyncio
 
     asyncio.run(run_async_migrations())
+
 
 if context.is_offline_mode():
     run_migrations_offline()

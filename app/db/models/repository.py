@@ -16,11 +16,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.db.models.repository_file import RepositoryFile
 
+
 class RepositoryStatus(str, Enum):
     PENDING = "PENDING"
     CLONING = "CLONING"
     READY = "READY"
     FAILED = "FAILED"
+
 
 class Repository(TimestampMixin, Base):
     __tablename__ = "repositories"

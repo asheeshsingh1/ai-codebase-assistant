@@ -100,9 +100,7 @@ class FileScanner:
 
             files.append(
                 {
-                    "relative_path": str(
-                        file_path.relative_to(repository_path)
-                    ),
+                    "relative_path": str(file_path.relative_to(repository_path)),
                     "extension": extension,
                     "language": self.EXTENSION_LANGUAGE_MAP.get(extension),
                     "size": file_path.stat().st_size,

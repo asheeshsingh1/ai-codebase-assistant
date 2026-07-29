@@ -82,9 +82,7 @@ class PythonChunker(BaseChunker):
         chunk_index: int,
     ) -> Chunk | None:
         imports = [
-            node
-            for node in tree.body
-            if isinstance(node, (ast.Import, ast.ImportFrom))
+            node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))
         ]
 
         if not imports:
@@ -93,9 +91,7 @@ class PythonChunker(BaseChunker):
         start = imports[0].lineno
         end = imports[-1].end_lineno
 
-        content = "\n".join(
-            text.splitlines()[start - 1 : end]
-        )
+        content = "\n".join(text.splitlines()[start - 1 : end])
 
         return self._create_chunk(
             chunk_index=chunk_index,
@@ -182,10 +178,7 @@ class PythonChunker(BaseChunker):
             if not method_source:
                 continue
 
-            content = (
-                f"{class_header}\n"
-                f"{self._indent(method_source)}"
-            )
+            content = f"{class_header}\n" f"{self._indent(method_source)}"
 
             chunks.append(
                 self._create_chunk(
@@ -212,19 +205,13 @@ class PythonChunker(BaseChunker):
         for base in node.bases:
             bases.append(ast.unparse(base))
 
-        return (
-            f"class {node.name}"
-            f"({', '.join(bases)}):"
-        )
+        return f"class {node.name}" f"({', '.join(bases)}):"
 
     def _indent(
         self,
         text: str,
     ) -> str:
-        return "\n".join(
-            f"    {line}" if line else ""
-            for line in text.splitlines()
-        )
+        return "\n".join(f"    {line}" if line else "" for line in text.splitlines())
 
     def _create_chunk(
         self,

@@ -10,6 +10,7 @@ from app.services.chunking.chunk_service import ChunkService
 from app.services.git_service import GitService
 from app.services.file_indexer_service import FileIndexerService
 
+
 class RepositoryService:
 
     def __init__(
@@ -29,9 +30,7 @@ class RepositoryService:
         payload: RepositoryCreate,
     ) -> Repository:
 
-        existing = await self.repository_repo.get_by_git_url(
-            str(payload.git_url)
-        )
+        existing = await self.repository_repo.get_by_git_url(str(payload.git_url))
 
         if existing:
             raise ValueError("Repository already exists")
@@ -43,16 +42,12 @@ class RepositoryService:
             git_url=str(payload.git_url),
         )
 
-
         repository = await self.repository_repo.create(repository)
 
         repository.status = RepositoryStatus.CLONING
         await self.repository_repo.update(repository)
 
-        storage_path = (
-            Path(settings.repository_storage_path)
-            / str(repository.id)
-        )
+        storage_path = Path(settings.repository_storage_path) / str(repository.id)
 
         try:
             self.git_service.clone(
@@ -65,9 +60,7 @@ class RepositoryService:
             await self.file_indexer.index_repository(
                 repository,
             )
-            await self.chunk_service.chunk_repository(
-                repository
-            )
+            await self.chunk_service.chunk_repository(repository)
             repository.status = RepositoryStatus.READY
 
         except Exception as e:

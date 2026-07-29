@@ -22,9 +22,7 @@ class RepositoryFileRepository:
         repository_id: int,
     ) -> Sequence[RepositoryFile]:
         result = await self.db.execute(
-            select(RepositoryFile).where(
-                RepositoryFile.repository_id == repository_id
-            )
+            select(RepositoryFile).where(RepositoryFile.repository_id == repository_id)
         )
         return result.scalars().all()
 
@@ -33,8 +31,6 @@ class RepositoryFileRepository:
         repository_id,
     ) -> None:
         await self.db.execute(
-            delete(RepositoryFile).where(
-                RepositoryFile.repository_id == repository_id
-            )
+            delete(RepositoryFile).where(RepositoryFile.repository_id == repository_id)
         )
         await self.db.commit()

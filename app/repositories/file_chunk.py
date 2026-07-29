@@ -40,9 +40,7 @@ class FileChunkRepository:
         Delete all chunks belonging to a repository file.
         """
         await self.db.execute(
-            delete(FileChunk).where(
-                FileChunk.repository_file_id == repository_file_id
-            )
+            delete(FileChunk).where(FileChunk.repository_file_id == repository_file_id)
         )
 
         await self.db.commit()
@@ -56,9 +54,7 @@ class FileChunkRepository:
         """
         result = await self.db.execute(
             select(FileChunk)
-            .where(
-                FileChunk.repository_file_id == repository_file_id
-            )
+            .where(FileChunk.repository_file_id == repository_file_id)
             .order_by(FileChunk.chunk_index)
         )
 

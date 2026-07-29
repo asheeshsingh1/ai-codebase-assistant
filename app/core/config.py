@@ -1,4 +1,7 @@
+# app/core/config.py
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from app.services.embeddings.models import EmbeddingProviderType
 
 
 class Settings(BaseSettings):
@@ -7,14 +10,20 @@ class Settings(BaseSettings):
     debug: bool = True
 
     database_url: str
+    repository_storage_path: str = "storage/repos"
 
-    gemini_api_key: str
+    # AI
+    embedding_provider: EmbeddingProviderType = EmbeddingProviderType.OPENAI
+    embedding_model: str = "text-embedding-3-small"
+
+    openai_api_key: SecretStr | None = None
+    gemini_api_key: SecretStr | None = None
+    voyage_api_key: SecretStr | None = None
 
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,
     )
-    repository_storage_path: str = "storage/repos"
 
 
 settings = Settings()

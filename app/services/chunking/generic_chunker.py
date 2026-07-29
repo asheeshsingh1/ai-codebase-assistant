@@ -43,11 +43,7 @@ class GenericChunker(BaseChunker):
             content = text[start:end]
 
             start_line = text[:start].count("\n") + 1
-            end_line = (
-                start_line
-                + ChunkUtils.line_count(content)
-                - 1
-            )
+            end_line = start_line + ChunkUtils.line_count(content) - 1
 
             chunks.append(
                 Chunk(

@@ -9,6 +9,7 @@ from app.api.v1.repositories import router as repository_router
 
 app = FastAPI(title=settings.app_name)
 
+
 @app.get("/health")
 async def health():
     try:
@@ -26,5 +27,6 @@ async def health():
             "database": "disconnected",
             "error": str(e),
         }
+
 
 app.include_router(repository_router)

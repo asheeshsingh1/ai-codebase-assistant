@@ -25,7 +25,7 @@ class FileIndexerService:
         files = self.scanner.scan(
             Path(repository.local_path),
         )
-        
+
         repository_files = [
             RepositoryFile(
                 repository_id=repository.id,
@@ -39,12 +39,8 @@ class FileIndexerService:
         ]
 
         try:
-            await self.repository_file_repo.delete_by_repository_id(
-                repository.id
-            )
+            await self.repository_file_repo.delete_by_repository_id(repository.id)
         except Exception as e:
             raise
 
-        await self.repository_file_repo.bulk_create(
-            repository_files
-        )
+        await self.repository_file_repo.bulk_create(repository_files)

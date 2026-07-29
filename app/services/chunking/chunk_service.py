@@ -30,10 +30,8 @@ class ChunkService:
         self,
         repository: Repository,
     ) -> None:
-        repository_files = (
-            await self.repository_file_repo.get_by_repository_id(
-                repository.id,
-            )
+        repository_files = await self.repository_file_repo.get_by_repository_id(
+            repository.id,
         )
 
         repository_root = Path(repository.local_path)
