@@ -17,9 +17,9 @@ class RepositoryFileRepository:
         self.db.add_all(files)
         await self.db.commit()
 
-    async def get_by_repository(
+    async def get_by_repository_id(
         self,
-        repository_id,
+        repository_id: int,
     ) -> Sequence[RepositoryFile]:
         result = await self.db.execute(
             select(RepositoryFile).where(
@@ -28,7 +28,7 @@ class RepositoryFileRepository:
         )
         return result.scalars().all()
 
-    async def delete_by_repository(
+    async def delete_by_repository_id(
         self,
         repository_id,
     ) -> None:

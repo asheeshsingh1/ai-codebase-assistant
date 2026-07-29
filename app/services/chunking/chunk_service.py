@@ -6,12 +6,13 @@ from app.db.models.file_chunk import FileChunk
 from app.db.models.repository import Repository
 from app.repositories.file_chunk import FileChunkRepository
 from app.repositories.repository_file import RepositoryFileRepository
-from app.services.chunking.chunk_factory import ChunkFactory
+
+from .chunk_factory import ChunkFactory
 
 
 class ChunkService:
     """
-    Responsible for generating and persisting chunks for every file
+    Service responsible for generating semantic chunks for all files
     in a repository.
     """
 
@@ -29,29 +30,20 @@ class ChunkService:
         self,
         repository: Repository,
     ) -> None:
-        """
-        Generate chunks for every indexed file belonging to a repository.
-        """
-
-        if repository.local_path is None:
-            raise ValueError("Repository has no local path.")
-
         repository_files = (
-            await self.repository_file_repo.get_by_repository(
-                repository.id
+            await self.repository_file_repo.get_by_repository_id(
+                repository.id,
             )
         )
 
-        for repository_file in repository_files:
+        repository_root = Path(repository.local_path)
 
-            absolute_path = (
-                Path(repository.local_path)
-                / repository_file.relative_path
-            )
+        for repository_file in repository_files:
+            absolute_path = repository_root / repository_file.relative_path
 
             if not absolute_path.exists():
                 continue
-            print("Reading file:", absolute_path)
+
             try:
                 text = absolute_path.read_text(
                     encoding="utf-8",
@@ -61,29 +53,23 @@ class ChunkService:
                     encoding="utf-8",
                     errors="ignore",
                 )
-            print("File read:", len(text))
 
             chunker = self.chunk_factory.get_chunker(
                 repository_file.extension,
             )
-            print("Chunking...")
 
-            chunks = chunker.chunk(
-                text,
-            )
-            print("Chunks generated:", len(chunks))
+            chunks = chunker.chunk(text)
 
-            if not chunks:
-                continue
-
-            await self.file_chunk_repo.delete_by_repository_file(
-                repository_file.id
+            await self.file_chunk_repo.delete_by_repository_file_id(
+                repository_file.id,
             )
 
-            file_chunks = [
+            db_chunks = [
                 FileChunk(
                     repository_file_id=repository_file.id,
                     chunk_index=chunk.chunk_index,
+                    chunk_type=chunk.chunk_type.value,
+                    symbol_name=chunk.symbol_name,
                     content=chunk.content,
                     start_line=chunk.start_line,
                     end_line=chunk.end_line,
@@ -94,5 +80,5 @@ class ChunkService:
             ]
 
             await self.file_chunk_repo.bulk_create(
-                file_chunks
+                db_chunks,
             )

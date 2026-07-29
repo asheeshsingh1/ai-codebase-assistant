@@ -39,7 +39,7 @@ class FileIndexerService:
         ]
 
         try:
-            await self.repository_file_repo.delete_by_repository(
+            await self.repository_file_repo.delete_by_repository_id(
                 repository.id
             )
         except Exception as e:

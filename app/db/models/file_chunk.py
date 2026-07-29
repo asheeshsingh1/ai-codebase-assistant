@@ -1,38 +1,45 @@
 from __future__ import annotations
 
-import uuid
+from typing import TYPE_CHECKING
+from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKey, Integer, Text, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins import TimestampMixin
 
-from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
     from app.db.models.repository_file import RepositoryFile
 
+if TYPE_CHECKING:
+    from app.db.models.chunk_embedding import ChunkEmbedding
+
+
 class FileChunk(TimestampMixin, Base):
+    """
+    Represents a semantic chunk extracted from a repository file.
+    """
+
     __tablename__ = "file_chunks"
 
     __table_args__ = (
         UniqueConstraint(
             "repository_file_id",
             "chunk_index",
-            name="uq_repository_file_chunk",
+            name="uq_repository_file_chunk_index",
         ),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+    id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4,
+        default=uuid4,
     )
 
-    repository_file_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+    repository_file_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
         ForeignKey(
             "repository_files.id",
             ondelete="CASCADE",
@@ -44,6 +51,18 @@ class FileChunk(TimestampMixin, Base):
     chunk_index: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
+    )
+
+    chunk_type: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        index=True,
+    )
+
+    symbol_name: Mapped[str | None] = mapped_column(
+        String(512),
+        nullable=True,
+        index=True,
     )
 
     content: Mapped[str] = mapped_column(
@@ -67,6 +86,7 @@ class FileChunk(TimestampMixin, Base):
     )
 
     content_hash: Mapped[str] = mapped_column(
+        String(64),
         nullable=False,
         index=True,
     )
@@ -74,4 +94,10 @@ class FileChunk(TimestampMixin, Base):
     repository_file: Mapped["RepositoryFile"] = relationship(
         "RepositoryFile",
         back_populates="chunks",
+    )
+
+    embeddings: Mapped[list["ChunkEmbedding"]] = relationship(
+        "ChunkEmbedding",
+        back_populates="chunk",
+        cascade="all, delete-orphan",
     )
