@@ -1,3 +1,4 @@
+# app/container.py
 from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +12,15 @@ from app.services.file_indexer_service import FileIndexerService
 from app.services.file_scanner import FileScanner
 from app.services.git_service import GitService
 from app.services.repository_service import RepositoryService
+
+from app.core.config import settings
+
+from app.repositories.chunk_embedding_repository import ChunkEmbeddingRepository
+
+from app.services.embeddings.config import EmbeddingProviderConfig
+from app.services.embeddings.embedding_service import EmbeddingService
+from app.services.embeddings.provider_factory import EmbeddingProviderFactory
+from app.services.embeddings.base import EmbeddingProvider
 
 
 class AppContainer:
@@ -38,6 +48,10 @@ class AppContainer:
         self._chunk_factory: ChunkFactory | None = None
         self._chunk_service: ChunkService | None = None
         self._file_indexer_service: FileIndexerService | None = None
+        self._chunk_embedding_repo: ChunkEmbeddingRepository | None = None
+
+        self._embedding_provider: EmbeddingProvider | None = None
+        self._embedding_service: EmbeddingService | None = None
 
     # ------------------------------------------------------------------
     # Repositories
@@ -60,6 +74,14 @@ class AppContainer:
         if self._file_chunk_repo is None:
             self._file_chunk_repo = FileChunkRepository(self.db)
         return self._file_chunk_repo
+
+    @property
+    def chunk_embedding_repo(self) -> ChunkEmbeddingRepository:
+        if self._chunk_embedding_repo is None:
+            self._chunk_embedding_repo = ChunkEmbeddingRepository(
+                self.db,
+            )
+        return self._chunk_embedding_repo
 
     # ------------------------------------------------------------------
     # Infrastructure
@@ -97,6 +119,21 @@ class AppContainer:
             )
         return self._chunk_service
 
+    @property
+    def embedding_provider(self) -> EmbeddingProvider:
+
+        if self._embedding_provider is None:
+
+            config = EmbeddingProviderConfig(
+                provider=settings.embedding_provider,
+                api_key=settings.openai_api_key,
+                model=settings.embedding_model,
+            )
+
+            self._embedding_provider = EmbeddingProviderFactory.create(config)
+
+        return self._embedding_provider
+
     # ------------------------------------------------------------------
     # File Indexing
     # ------------------------------------------------------------------
@@ -121,4 +158,16 @@ class AppContainer:
             git_service=self.git_service,
             file_indexer=self.file_indexer_service,
             chunk_service=self.chunk_service,
+            embedding_service=self.embedding_service,
         )
+
+    @property
+    def embedding_service(self) -> EmbeddingService:
+
+        if self._embedding_service is None:
+            self._embedding_service = EmbeddingService(
+                provider=self.embedding_provider,
+                chunk_embedding_repo=self.chunk_embedding_repo,
+            )
+
+        return self._embedding_service

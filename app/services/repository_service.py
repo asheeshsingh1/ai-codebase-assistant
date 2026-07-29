@@ -1,3 +1,4 @@
+# app/services/repository_service.py
 from pathlib import Path
 from urllib.parse import urlparse
 import traceback
@@ -7,8 +8,10 @@ from app.db.models.repository import Repository, RepositoryStatus
 from app.repositories.repository import RepositoryRepository
 from app.schemas.repository import RepositoryCreate
 from app.services.chunking.chunk_service import ChunkService
+from app.services.embedding_service import EmbeddingService
 from app.services.git_service import GitService
 from app.services.file_indexer_service import FileIndexerService
+from app.services.embeddings.embedding_service import EmbeddingService
 
 
 class RepositoryService:
@@ -19,11 +22,13 @@ class RepositoryService:
         git_service: GitService,
         file_indexer: FileIndexerService,
         chunk_service: ChunkService,
-    ) -> None:
+        embedding_service: EmbeddingService,
+    ):
         self.repository_repo = repository_repo
         self.git_service = git_service
         self.file_indexer = file_indexer
         self.chunk_service = chunk_service
+        self.embedding_service = embedding_service
 
     async def create_repository(
         self,
@@ -60,7 +65,16 @@ class RepositoryService:
             await self.file_indexer.index_repository(
                 repository,
             )
-            await self.chunk_service.chunk_repository(repository)
+            # await self.chunk_service.chunk_repository(repository)
+            # repository.status = RepositoryStatus.READY
+            chunks = await self.chunk_service.chunk_repository(
+                repository,
+            )
+
+            await self.embedding_service.embed_chunks(
+                chunks,
+            )
+
             repository.status = RepositoryStatus.READY
 
         except Exception as e:

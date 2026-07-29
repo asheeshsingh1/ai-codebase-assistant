@@ -29,12 +29,14 @@ class ChunkService:
     async def chunk_repository(
         self,
         repository: Repository,
-    ) -> None:
+    ) -> list[FileChunk]:
         repository_files = await self.repository_file_repo.get_by_repository_id(
             repository.id,
         )
 
         repository_root = Path(repository.local_path)
+
+        all_chunks: list[FileChunk] = []
 
         for repository_file in repository_files:
             absolute_path = repository_root / repository_file.relative_path
@@ -80,3 +82,7 @@ class ChunkService:
             await self.file_chunk_repo.bulk_create(
                 db_chunks,
             )
+
+            all_chunks.extend(db_chunks)
+
+        return all_chunks
