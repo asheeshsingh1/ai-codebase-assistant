@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.db.models.repository import Repository
+    from app.db.models.file_chunk import FileChunk
 
 class RepositoryFile(TimestampMixin,Base):
     __tablename__ = "repository_files"
@@ -46,4 +47,10 @@ class RepositoryFile(TimestampMixin,Base):
     repository: Mapped["Repository"] = relationship(
         "Repository",
         back_populates="files",
+    )
+
+    chunks: Mapped[list["FileChunk"]] = relationship(
+        "FileChunk",
+        back_populates="repository_file",
+        cascade="all, delete-orphan",
     )

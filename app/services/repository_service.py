@@ -4,8 +4,11 @@ import traceback
 
 from app.core.config import settings
 from app.db.models.repository import Repository, RepositoryStatus
+from app.repositories.file_chunk import FileChunkRepository
 from app.repositories.repository import RepositoryRepository
 from app.schemas.repository import RepositoryCreate
+from app.services.chunking.chunk_factory import ChunkFactory
+from app.services.chunking.chunk_service import ChunkService
 from app.services.git_service import GitService
 from app.repositories.repository_file import RepositoryFileRepository
 from app.services.file_indexer_service import FileIndexerService
@@ -26,6 +29,13 @@ class RepositoryService:
         self.file_indexer = FileIndexerService(
             scanner=FileScanner(),
             repository_file_repo=repository_file_repo,
+        )
+        self.chunk_service = ChunkService(
+            repository_file_repo=repository_file_repo,
+            file_chunk_repo=FileChunkRepository(
+                repository_repo.db,
+            ),
+            chunk_factory=ChunkFactory(),
         )
 
     async def create_repository(
@@ -68,6 +78,9 @@ class RepositoryService:
             await self.repository_repo.update(repository)
             await self.file_indexer.index_repository(
                 repository,
+            )
+            await self.chunk_service.chunk_repository(
+                repository
             )
             repository.status = RepositoryStatus.READY
 
