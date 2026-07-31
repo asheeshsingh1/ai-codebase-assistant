@@ -6,3 +6,4 @@ class EmbeddingProviderType(StrEnum):
     OPENAI = "openai"
     GEMINI = "gemini"
     VOYAGE = "voyage"
+    OPENROUTER = "openrouter"

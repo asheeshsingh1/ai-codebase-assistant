@@ -44,8 +44,8 @@ class EmbeddingService:
             db_embeddings = [
                 ChunkEmbedding(
                     chunk_id=chunk.id,
-                    provider=self.provider.provider_name.value,
-                    model=self.provider.model_name,
+                    provider=self.provider.provider.value,
+                    model=self.provider.model,
                     dimensions=self.provider.dimensions,
                     embedding=vector,
                 )

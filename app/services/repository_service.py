@@ -71,9 +71,10 @@ class RepositoryService:
                 repository,
             )
 
-            await self.embedding_service.embed_chunks(
-                chunks,
-            )
+            if settings.enable_embeddings:
+                await self.embedding_service.embed_chunks(
+                    chunks,
+                )
 
             repository.status = RepositoryStatus.READY
 

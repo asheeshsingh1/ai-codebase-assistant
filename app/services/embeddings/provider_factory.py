@@ -4,8 +4,10 @@ from app.services.embeddings.base import EmbeddingProvider
 from app.services.embeddings.config import EmbeddingProviderConfig
 from app.services.embeddings.models import EmbeddingProviderType
 from app.services.embeddings.openai_provider import OpenAIEmbeddingProvider
-from app.services.embeddings.gemini_provider import GeminiEmbeddingProvider
-from app.services.embeddings.voyage_provider import VoyageEmbeddingProvider
+from app.services.embeddings.openrouter_provider import OpenRouterEmbeddingProvider
+
+# from app.services.embeddings.gemini_provider import GeminiEmbeddingProvider
+# from app.services.embeddings.voyage_provider import VoyageEmbeddingProvider
 
 
 class EmbeddingProviderFactory:
@@ -20,11 +22,19 @@ class EmbeddingProviderFactory:
             case EmbeddingProviderType.OPENAI:
                 return OpenAIEmbeddingProvider(config)
 
-            case EmbeddingProviderType.GEMINI:
-                return GeminiEmbeddingProvider(config)
+            case EmbeddingProviderType.OPENROUTER:
+                return OpenRouterEmbeddingProvider(config)
 
-            case EmbeddingProviderType.VOYAGE:
-                return VoyageEmbeddingProvider(config)
+            case _:
+                raise NotImplementedError(
+                    f"Embedding provider '{config.provider}' is not supported."
+                )
+
+            # case EmbeddingProviderType.GEMINI:
+            #     return GeminiEmbeddingProvider(config)
+
+            # case EmbeddingProviderType.VOYAGE:
+            #     return VoyageEmbeddingProvider(config)
 
         raise NotImplementedError(
             f"Embedding provider '{config.provider}' is not supported."

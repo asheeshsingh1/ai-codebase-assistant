@@ -8,6 +8,7 @@ from app.repositories.repository import RepositoryRepository
 from app.repositories.repository_file import RepositoryFileRepository
 from app.services.chunking.chunk_factory import ChunkFactory
 from app.services.chunking.chunk_service import ChunkService
+from app.services.embeddings.models import EmbeddingProviderType
 from app.services.file_indexer_service import FileIndexerService
 from app.services.file_scanner import FileScanner
 from app.services.git_service import GitService
@@ -21,6 +22,25 @@ from app.services.embeddings.config import EmbeddingProviderConfig
 from app.services.embeddings.embedding_service import EmbeddingService
 from app.services.embeddings.provider_factory import EmbeddingProviderFactory
 from app.services.embeddings.base import EmbeddingProvider
+
+from app.repositories.search import SearchRepository
+
+from app.services.search.retrieval_service import RetrievalService
+
+from app.services.llm.base import LLMProvider
+from app.services.llm.config import LLMProviderConfig
+from app.services.llm.provider_factory import LLMProviderFactory
+
+from app.services.chat.chat_service import ChatService
+
+from app.repositories.search import SearchRepository
+
+from app.services.chat.chat_service import ChatService
+from app.services.llm.config import LLMProviderConfig
+from app.services.llm.llm_service import LLMService
+from app.services.llm.provider_factory import LLMProviderFactory
+from app.services.llm.base import LLMProvider
+from app.services.search.retrieval_service import RetrievalService
 
 
 class AppContainer:
@@ -52,6 +72,17 @@ class AppContainer:
 
         self._embedding_provider: EmbeddingProvider | None = None
         self._embedding_service: EmbeddingService | None = None
+        self._search_repository: SearchRepository | None = None
+        self._retrieval_service: RetrievalService | None = None
+        self._llm_provider: LLMProvider | None = None
+        self._chat_service: ChatService | None = None
+        self._search_repository: SearchRepository | None = None
+
+        self._llm_provider: LLMProvider | None = None
+        self._llm_service: LLMService | None = None
+
+        self._retrieval_service: RetrievalService | None = None
+        self._chat_service: ChatService | None = None
 
     # ------------------------------------------------------------------
     # Repositories
@@ -82,6 +113,25 @@ class AppContainer:
                 self.db,
             )
         return self._chunk_embedding_repo
+
+    @property
+    def search_repository(self) -> SearchRepository:
+        if self._search_repository is None:
+            self._search_repository = SearchRepository(
+                self.db,
+            )
+
+        return self._search_repository
+
+    @property
+    def search_repository(self) -> SearchRepository:
+
+        if self._search_repository is None:
+            self._search_repository = SearchRepository(
+                self.db,
+            )
+
+        return self._search_repository
 
     # ------------------------------------------------------------------
     # Infrastructure
@@ -123,16 +173,37 @@ class AppContainer:
     def embedding_provider(self) -> EmbeddingProvider:
 
         if self._embedding_provider is None:
+            api_key = {
+                EmbeddingProviderType.OPENAI: settings.openai_api_key,
+                EmbeddingProviderType.OPENROUTER: settings.openrouter_api_key,
+            }[settings.embedding_provider]
 
             config = EmbeddingProviderConfig(
                 provider=settings.embedding_provider,
-                api_key=settings.openai_api_key,
+                api_key=api_key,
                 model=settings.embedding_model,
             )
 
             self._embedding_provider = EmbeddingProviderFactory.create(config)
 
         return self._embedding_provider
+
+    @property
+    def llm_provider(self) -> LLMProvider:
+
+        if self._llm_provider is None:
+
+            config = LLMProviderConfig(
+                provider=settings.llm_provider,
+                api_key=settings.openrouter_api_key,
+                model=settings.llm_model,
+            )
+
+            self._llm_provider = LLMProviderFactory.create(
+                config,
+            )
+
+        return self._llm_provider
 
     # ------------------------------------------------------------------
     # File Indexing
@@ -171,3 +242,45 @@ class AppContainer:
             )
 
         return self._embedding_service
+
+    @property
+    def retrieval_service(self) -> RetrievalService:
+        if self._retrieval_service is None:
+            self._retrieval_service = RetrievalService(
+                embedding_service=self.embedding_service,
+                search_repository=self.search_repository,
+            )
+
+        return self._retrieval_service
+
+    @property
+    def chat_service(self) -> ChatService:
+
+        if self._chat_service is None:
+            self._chat_service = ChatService(
+                retrieval_service=self.retrieval_service,
+                llm_service=self.llm_service,
+            )
+
+        return self._chat_service
+
+    @property
+    def llm_service(self) -> LLMService:
+
+        if self._llm_service is None:
+            self._llm_service = LLMService(
+                provider=self.llm_provider,
+            )
+
+        return self._llm_service
+
+    @property
+    def retrieval_service(self) -> RetrievalService:
+
+        if self._retrieval_service is None:
+            self._retrieval_service = RetrievalService(
+                embedding_service=self.embedding_service,
+                search_repository=self.search_repository,
+            )
+
+        return self._retrieval_service

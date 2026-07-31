@@ -1,4 +1,3 @@
-# app/services/embeddings/model_registry.py
 from dataclasses import dataclass
 
 
@@ -8,7 +7,7 @@ class EmbeddingModel:
     dimensions: int
 
 
-OPENAI_MODELS = {
+OPENAI_MODELS: dict[str, EmbeddingModel] = {
     "text-embedding-3-small": EmbeddingModel(
         name="text-embedding-3-small",
         dimensions=1536,
@@ -16,5 +15,16 @@ OPENAI_MODELS = {
     "text-embedding-3-large": EmbeddingModel(
         name="text-embedding-3-large",
         dimensions=3072,
+    ),
+    "text-embedding-ada-002": EmbeddingModel(
+        name="text-embedding-ada-002",
+        dimensions=1536,
+    ),
+}
+
+OPENROUTER_MODELS = {
+    "nvidia/nemotron-3-embed-1b:free": EmbeddingModel(
+        name="nvidia/nemotron-3-embed-1b:free",
+        dimensions=2048,  # Verify this value from the provider docs or API.
     ),
 }

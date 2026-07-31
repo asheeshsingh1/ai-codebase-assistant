@@ -35,8 +35,11 @@ class RetrievalService:
             query,
         )
 
-        return await self.search_repository.similarity_search(
+        results = await self.search_repository.similarity_search(
             repository_id=repository_id,
             embedding=query_embedding,
             limit=limit,
         )
+        print("SEARCH RESULTS:", results)
+
+        return results
