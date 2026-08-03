@@ -60,3 +60,9 @@ class Repository(TimestampMixin, Base):
         back_populates="repository",
         cascade="all, delete-orphan",
     )
+
+    chat_messages = relationship(
+        "ChatMessage",
+        back_populates="repository",
+        cascade="all, delete-orphan",
+    )

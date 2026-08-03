@@ -1,7 +1,10 @@
 # app/services/repository_service.py
 from pathlib import Path
+import shutil
 from urllib.parse import urlparse
 import traceback
+
+from sqlalchemy import UUID
 
 from app.core.config import settings
 from app.db.models.repository import Repository, RepositoryStatus
@@ -12,6 +15,10 @@ from app.services.embedding_service import EmbeddingService
 from app.services.git_service import GitService
 from app.services.file_indexer_service import FileIndexerService
 from app.services.embeddings.embedding_service import EmbeddingService
+from app.services.repository.exceptions import (
+    RepositoryAlreadyExistsError,
+    RepositoryNotFoundError,
+)
 
 
 class RepositoryService:
@@ -38,7 +45,7 @@ class RepositoryService:
         existing = await self.repository_repo.get_by_git_url(str(payload.git_url))
 
         if existing:
-            raise ValueError("Repository already exists")
+            raise RepositoryAlreadyExistsError("Repository already exists")
 
         repo_name = self._extract_repo_name(str(payload.git_url))
 
@@ -114,3 +121,19 @@ class RepositoryService:
             )
             for repository in repositories
         ]
+
+    async def delete_repository(
+        self,
+        repository_id: UUID,
+    ) -> None:
+        repo = await self.repository_repo.get_by_id(repository_id)
+
+        if repo is None:
+            raise RepositoryNotFoundError(
+                "Repository not found.",
+            )
+
+        if repo.local_path:
+            shutil.rmtree(repo.local_path, ignore_errors=True)
+
+        await self.repository_repo.delete(repo)

@@ -38,3 +38,10 @@ class RepositoryRepository:
         await self.db.commit()
         await self.db.refresh(repository)
         return repository
+
+    async def delete(
+        self,
+        repository: Repository,
+    ) -> None:
+        await self.db.delete(repository)
+        await self.db.commit()

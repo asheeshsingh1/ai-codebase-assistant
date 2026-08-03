@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import asdict
 from uuid import UUID
 
+from app.services.chat.chat_history_service import ChatHistoryService
 from app.services.chat.models import ChatResult, Citation
 from app.services.chat.prompt_builder import PromptBuilder
 from app.services.llm.llm_service import LLMService
@@ -15,11 +17,15 @@ class ChatService:
     Flow:
         Question
             ↓
+        Save User Message
+            ↓
         RetrievalService
             ↓
         PromptBuilder
             ↓
         LLMService
+            ↓
+        Save Assistant Message
             ↓
         ChatResult
     """
@@ -28,9 +34,11 @@ class ChatService:
         self,
         retrieval_service: RetrievalService,
         llm_service: LLMService,
+        chat_history_service: ChatHistoryService,
     ) -> None:
         self.retrieval_service = retrieval_service
         self.llm_service = llm_service
+        self.chat_history_service = chat_history_service
 
     async def ask(
         self,
@@ -41,27 +49,31 @@ class ChatService:
         Answer a repository question using Retrieval-Augmented Generation (RAG).
         """
 
+        # Save the user's message
+        await self.chat_history_service.save_user_message(
+            repository_id=repository_id,
+            content=question,
+        )
+
+        # Retrieve relevant chunks
         search_results = await self.retrieval_service.retrieve(
             repository_id=repository_id,
             query=question,
             limit=10,
         )
 
-        print("1. Retrieved chunks")
-
+        # Build the prompt
         messages = PromptBuilder.build(
             question=question,
             search_results=search_results,
         )
 
-        print("2. Prompt built")
-
+        # Generate the answer
         answer = await self.llm_service.generate(
             messages,
         )
 
-        print("3. LLM finished")
-
+        # Build citations
         citations = [
             Citation(
                 file_path=result.chunk.repository_file.relative_path,
@@ -70,6 +82,13 @@ class ChatService:
             )
             for result in search_results
         ]
+
+        # Save the assistant response
+        await self.chat_history_service.save_assistant_message(
+            repository_id=repository_id,
+            content=answer,
+            citations=[asdict(citation) for citation in citations],
+        )
 
         return ChatResult(
             answer=answer,

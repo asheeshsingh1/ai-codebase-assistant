@@ -3,16 +3,18 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.repositories.chat_repository import ChatRepository
 from app.repositories.file_chunk import FileChunkRepository
 from app.repositories.repository import RepositoryRepository
 from app.repositories.repository_file import RepositoryFileRepository
+from app.services.chat.chat_history_service import ChatHistoryService
 from app.services.chunking.chunk_factory import ChunkFactory
 from app.services.chunking.chunk_service import ChunkService
 from app.services.embeddings.models import EmbeddingProviderType
 from app.services.file_indexer_service import FileIndexerService
 from app.services.file_scanner import FileScanner
 from app.services.git_service import GitService
-from app.services.repository_service import RepositoryService
+from app.services.repository.repository_service import RepositoryService
 
 from app.core.config import settings
 
@@ -132,6 +134,12 @@ class AppContainer:
             )
 
         return self._search_repository
+
+    @property
+    def chat_repository(self) -> ChatRepository:
+        return ChatRepository(
+            self.db,
+        )
 
     # ------------------------------------------------------------------
     # Infrastructure
@@ -255,14 +263,11 @@ class AppContainer:
 
     @property
     def chat_service(self) -> ChatService:
-
-        if self._chat_service is None:
-            self._chat_service = ChatService(
-                retrieval_service=self.retrieval_service,
-                llm_service=self.llm_service,
-            )
-
-        return self._chat_service
+        return ChatService(
+            retrieval_service=self.retrieval_service,
+            llm_service=self.llm_service,
+            chat_history_service=self.chat_history_service,
+        )
 
     @property
     def llm_service(self) -> LLMService:
@@ -284,3 +289,9 @@ class AppContainer:
             )
 
         return self._retrieval_service
+
+    @property
+    def chat_history_service(self) -> ChatHistoryService:
+        return ChatHistoryService(
+            chat_repository=self.chat_repository,
+        )

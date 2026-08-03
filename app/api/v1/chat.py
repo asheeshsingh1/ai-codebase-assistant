@@ -19,6 +19,7 @@ from app.schemas.chat import (
     CitationResponse,
 )
 
+from app.schemas.chat_history import ChatHistoryResponse, ChatMessageResponse
 from app.services.chat.exceptions import (
     ChatError,
     RepositoryNotIndexedError,
@@ -84,3 +85,34 @@ async def chat(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to answer repository question.",
         ) from exc
+
+
+@router.get(
+    "/{repository_id}/messages",
+    response_model=ChatHistoryResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_messages(
+    repository_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> ChatHistoryResponse:
+    """
+    Return all chat messages for a repository.
+    """
+
+    container = AppContainer(db)
+
+    messages = await container.chat_history_service.get_messages(
+        repository_id=repository_id,
+    )
+
+    return ChatHistoryResponse(
+        messages=[
+            ChatMessageResponse(
+                role=message.role,
+                content=message.content,
+                citations=message.citations,
+            )
+            for message in messages
+        ]
+    )
