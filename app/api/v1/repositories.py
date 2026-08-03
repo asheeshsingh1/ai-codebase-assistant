@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
@@ -12,6 +13,19 @@ router = APIRouter(
     prefix="/repositories",
     tags=["Repositories"],
 )
+
+
+@router.get(
+    "",
+    response_model=list[RepositoryResponse],
+)
+async def list_repositories(
+    db: AsyncSession = Depends(get_db),
+):
+    container = AppContainer(db)
+    service = container.repository_service
+
+    return await service.list_repositories()
 
 
 @router.post(

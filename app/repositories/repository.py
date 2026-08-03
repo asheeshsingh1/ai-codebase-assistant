@@ -9,6 +9,13 @@ class RepositoryRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
+    async def list(self):
+        stmt = select(Repository).order_by(Repository.created_at.desc())
+
+        result = await self.db.execute(stmt)
+
+        return result.scalars().all()
+
     async def create(self, repository: Repository) -> Repository:
         self.db.add(repository)
         await self.db.commit()

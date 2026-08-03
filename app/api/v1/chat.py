@@ -25,7 +25,7 @@ from app.services.chat.exceptions import (
 )
 
 router = APIRouter(
-    prefix="/chat",
+    prefix="/repositories",
     tags=["Chat"],
 )
 
@@ -43,17 +43,14 @@ async def chat(
     """
     Ask a natural language question about a repository.
     """
-    print("Something")
 
     container = AppContainer(db)
-    print("Something 2")
     try:
 
         result = await container.chat_service.ask(
             repository_id=repository_id,
             question=request.question,
         )
-        print(result)
 
         return ChatResponse(
             answer=result.answer,

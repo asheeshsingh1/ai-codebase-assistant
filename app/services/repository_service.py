@@ -6,7 +6,7 @@ import traceback
 from app.core.config import settings
 from app.db.models.repository import Repository, RepositoryStatus
 from app.repositories.repository import RepositoryRepository
-from app.schemas.repository import RepositoryCreate
+from app.schemas.repository import RepositoryCreate, RepositoryResponse
 from app.services.chunking.chunk_service import ChunkService
 from app.services.embedding_service import EmbeddingService
 from app.services.git_service import GitService
@@ -101,3 +101,16 @@ class RepositoryService:
     def _extract_repo_name(url: str) -> str:
         path = urlparse(url).path
         return path.rstrip("/").split("/")[-1].removesuffix(".git")
+
+    async def list_repositories(
+        self,
+    ) -> list[RepositoryResponse]:
+
+        repositories = await self.repository_repo.list()
+
+        return [
+            RepositoryResponse.model_validate(
+                repository,
+            )
+            for repository in repositories
+        ]
