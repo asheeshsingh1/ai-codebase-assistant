@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 from uuid import UUID
 
 from app.services.chat.chat_history_service import ChatHistoryService
@@ -49,7 +48,7 @@ class ChatService:
         Answer a repository question using Retrieval-Augmented Generation (RAG).
         """
 
-        # Save the user's message
+        # Save user message
         await self.chat_history_service.save_user_message(
             repository_id=repository_id,
             content=question,
@@ -62,13 +61,13 @@ class ChatService:
             limit=10,
         )
 
-        # Build the prompt
+        # Build prompt
         messages = PromptBuilder.build(
             question=question,
             search_results=search_results,
         )
 
-        # Generate the answer
+        # Generate answer
         answer = await self.llm_service.generate(
             messages,
         )
@@ -76,6 +75,7 @@ class ChatService:
         # Build citations
         citations = [
             Citation(
+                repository_file_id=result.chunk.repository_file.id,
                 file_path=result.chunk.repository_file.relative_path,
                 start_line=result.chunk.start_line,
                 end_line=result.chunk.end_line,
@@ -83,11 +83,19 @@ class ChatService:
             for result in search_results
         ]
 
-        # Save the assistant response
+        # Save assistant response
         await self.chat_history_service.save_assistant_message(
             repository_id=repository_id,
             content=answer,
-            citations=[asdict(citation) for citation in citations],
+            citations=[
+                {
+                    "repository_file_id": str(citation.repository_file_id),
+                    "file_path": citation.file_path,
+                    "start_line": citation.start_line,
+                    "end_line": citation.end_line,
+                }
+                for citation in citations
+            ],
         )
 
         return ChatResult(

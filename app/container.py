@@ -43,6 +43,9 @@ from app.services.llm.llm_service import LLMService
 from app.services.llm.provider_factory import LLMProviderFactory
 from app.services.llm.base import LLMProvider
 from app.services.search.retrieval_service import RetrievalService
+from app.services.repository_file.repository_file_service import (
+    RepositoryFileService,
+)
 
 
 class AppContainer:
@@ -85,6 +88,7 @@ class AppContainer:
 
         self._retrieval_service: RetrievalService | None = None
         self._chat_service: ChatService | None = None
+        self._repository_file_service: RepositoryFileService | None = None
 
     # ------------------------------------------------------------------
     # Repositories
@@ -295,3 +299,16 @@ class AppContainer:
         return ChatHistoryService(
             chat_repository=self.chat_repository,
         )
+
+    @property
+    def repository_file_service(
+        self,
+    ) -> RepositoryFileService:
+
+        if self._repository_file_service is None:
+            self._repository_file_service = RepositoryFileService(
+                repository_repository=self.repository_repo,
+                repository_file_repository=self.repository_file_repo,
+            )
+
+        return self._repository_file_service

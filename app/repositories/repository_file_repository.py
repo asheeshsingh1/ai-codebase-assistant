@@ -1,32 +1,32 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.repository_file import RepositoryFile
 
 
 class RepositoryFileRepository:
+    """
+    Repository for RepositoryFile database operations.
+    """
+
     def __init__(
         self,
         db: AsyncSession,
-    ):
+    ) -> None:
         self.db = db
 
-    async def bulk_create(
-        self,
-        files: list[RepositoryFile],
-    ) -> None:
-        self.db.add_all(files)
-        await self.db.commit()
-
-    async def get_by_id(
+    async def get_by_repository_id(
         self,
         repository_file_id: UUID,
     ) -> RepositoryFile | None:
+        """
+        Retrieve a repository file by its ID.
+        """
+
         result = await self.db.execute(
             select(RepositoryFile).where(
                 RepositoryFile.id == repository_file_id,
@@ -35,26 +35,22 @@ class RepositoryFileRepository:
 
         return result.scalar_one_or_none()
 
-    async def get_by_repository_id(
+    async def list_by_repository(
         self,
         repository_id: UUID,
-    ) -> Sequence[RepositoryFile]:
+    ) -> list[RepositoryFile]:
+        """
+        List all files belonging to a repository.
+        """
+
         result = await self.db.execute(
-            select(RepositoryFile).where(
+            select(RepositoryFile)
+            .where(
                 RepositoryFile.repository_id == repository_id,
+            )
+            .order_by(
+                RepositoryFile.relative_path,
             )
         )
 
-        return result.scalars().all()
-
-    async def delete_by_repository_id(
-        self,
-        repository_id: UUID,
-    ) -> None:
-        await self.db.execute(
-            delete(RepositoryFile).where(
-                RepositoryFile.repository_id == repository_id,
-            )
-        )
-
-        await self.db.commit()
+        return list(result.scalars().all())
