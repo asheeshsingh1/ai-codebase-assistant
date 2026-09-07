@@ -21,10 +21,7 @@ services:
       retries: 5
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-
+    image: asheeshsingh01/codebase-assistant:be
     container_name: ai-codebase-backend
 
     environment:
@@ -59,10 +56,7 @@ services:
         condition: service_healthy
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-
+    image: asheeshsingh01/codebase-assistant:fe
     container_name: ai-codebase-frontend
 
     ports:
