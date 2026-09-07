@@ -15,6 +15,7 @@ from app.services.file_indexer_service import FileIndexerService
 from app.services.file_scanner import FileScanner
 from app.services.git_service import GitService
 from app.services.repository.repository_service import RepositoryService
+from app.services.llm.models import LLMProviderType
 
 from app.core.config import settings
 
@@ -188,6 +189,7 @@ class AppContainer:
             api_key = {
                 EmbeddingProviderType.OPENAI: settings.openai_api_key,
                 EmbeddingProviderType.OPENROUTER: settings.openrouter_api_key,
+                EmbeddingProviderType.GEMINI: settings.gemini_api_key,
             }[settings.embedding_provider]
 
             config = EmbeddingProviderConfig(
@@ -202,12 +204,16 @@ class AppContainer:
 
     @property
     def llm_provider(self) -> LLMProvider:
-
         if self._llm_provider is None:
+            api_key = {
+                LLMProviderType.OPENAI: settings.openai_api_key,
+                LLMProviderType.GEMINI: settings.gemini_api_key,
+                LLMProviderType.OPENROUTER: settings.openrouter_api_key,
+            }[settings.llm_provider]
 
             config = LLMProviderConfig(
                 provider=settings.llm_provider,
-                api_key=settings.openrouter_api_key,
+                api_key=api_key,
                 model=settings.llm_model,
             )
 

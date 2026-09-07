@@ -15,10 +15,62 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d codebase_assistant"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: ai-codebase-backend
+
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/codebase_assistant
+      REPOSITORY_STORAGE_PATH: /repositories
+
+      APP_NAME: AI Codebase Assistant
+      APP_ENV: development
+      DEBUG: "false"
+
+      ENABLE_EMBEDDINGS: "true"
+
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-gemini}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-gemini-embedding-2}
+
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.5-flash}
+
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - repositories:/repositories
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: ai-codebase-frontend
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
+  repositories:

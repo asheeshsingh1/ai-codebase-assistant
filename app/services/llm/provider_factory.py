@@ -6,6 +6,7 @@ from app.services.llm.config import LLMProviderConfig
 from app.services.llm.exceptions import (
     LLMProviderConfigurationError,
 )
+from app.services.llm.gemini_provider import GeminiProvider
 from app.services.llm.models import LLMProviderType
 from app.services.llm.openai_provider import OpenAIProvider
 from app.services.llm.openrouter_provider import OpenRouterProvider
@@ -28,7 +29,7 @@ class LLMProviderFactory:
                 return OpenRouterProvider(config)
 
             case LLMProviderType.GEMINI:
-                raise NotImplementedError("Gemini provider is not implemented.")
+                return GeminiProvider(config)
 
             case LLMProviderType.ANTHROPIC:
                 raise NotImplementedError("Anthropic provider is not implemented.")

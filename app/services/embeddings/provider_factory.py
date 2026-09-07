@@ -2,6 +2,7 @@
 
 from app.services.embeddings.base import EmbeddingProvider
 from app.services.embeddings.config import EmbeddingProviderConfig
+from app.services.embeddings.gemini_provider import GeminiEmbeddingProvider
 from app.services.embeddings.models import EmbeddingProviderType
 from app.services.embeddings.openai_provider import OpenAIEmbeddingProvider
 from app.services.embeddings.openrouter_provider import OpenRouterEmbeddingProvider
@@ -24,6 +25,9 @@ class EmbeddingProviderFactory:
 
             case EmbeddingProviderType.OPENROUTER:
                 return OpenRouterEmbeddingProvider(config)
+
+            case EmbeddingProviderType.GEMINI:
+                return GeminiEmbeddingProvider(config)
 
             case _:
                 raise NotImplementedError(

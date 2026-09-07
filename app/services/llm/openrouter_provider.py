@@ -24,7 +24,7 @@ class OpenRouterProvider(LLMProvider):
         "openai/gpt-4o-mini",
         "meta-llama/llama-3.3-70b-instruct",
         "anthropic/claude-3.5-sonnet",
-        "google/gemini-2.5-flash",
+        "google/gemini-3.5-flash",
         "deepseek/deepseek-chat-v3-0324:free",
         "google/gemma-4-26b-a4b-it:free",
     }

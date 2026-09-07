@@ -12,7 +12,6 @@ from app.db.base import Base
 from app.db.mixins import TimestampMixin
 from sqlalchemy import UniqueConstraint
 
-
 if TYPE_CHECKING:
     from app.db.models.file_chunk import FileChunk
 
